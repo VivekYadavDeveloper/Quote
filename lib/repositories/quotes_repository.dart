@@ -80,6 +80,8 @@ class QuotesRepository {
   //     // instance here you can close it (above ioClient.close() suffices).
   //   }
   // }
+  /********************************************************/ /*GET RANDOM QUOTES API*/
+  /********************************************************/
   Future<List<Quotable>> getRandomQuotes({
     required int page,
     int limit = 20,
@@ -116,6 +118,7 @@ class QuotesRepository {
       ioClient?.close();
     }
   }
+
   /*Below Code Is Working When SSL TSL Activated Licence*/
   // Future<List<Quotable>> getRandomQuotes() async {
   //   try {
@@ -160,28 +163,52 @@ class QuotesRepository {
   //   }
   // }
 
-  Future<List<Quotable>> searchQuotes(String query) async {
+  /********************************************************/ /*SEARCH QUOTES API*/
+  /********************************************************/
+  Future<List<Quotable>> searchQuotes({
+    required String query,
+    int limit = 20,
+  }) async {
+    http.Client client;
+    IOClient? ioClient;
+
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl$searchPath$quotesPath?query=$query'),
+      if (kDebugMode) {
+        final httpClient = HttpClient()
+          ..badCertificateCallback =
+              (X509Certificate cert, String host, int port) {
+                return host == 'api.quotable.io';
+              };
+        ioClient = IOClient(httpClient);
+        client = ioClient;
+      } else {
+        client = http.Client();
+      }
+
+      final uri = Uri.parse(
+        '$baseUrl$searchPath$quotesPath'
+        '?query=${Uri.encodeQueryComponent(query)}'
+        '&limit=$limit',
       );
 
+      final response = await client.get(uri);
+
       if (response.statusCode != 200) {
-        throw Exception('Failed to search quotes: ${response.statusCode}');
+        throw Exception('Failed search: ${response.statusCode}');
       }
 
       final json = jsonDecode(response.body);
-      final data = json['results'] as List;
+      final List results = json['results'];
 
-      final quotes = data.map((e) => Quotable.fromJson(e)).toList();
-      return quotes;
-    } catch (e) {
-      log('Error in searchQuotes: $e');
-      rethrow;
+      return results
+          .map((e) => Quotable.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } finally {
+      ioClient?.close();
     }
   }
 
-  // Create a quote
+  // /********************************************************/ CREATE QUOTES BY ME API /********************************************************/
   Future<void> createQuote(Quote quote) async {
     try {
       final data = quote.toJson();
@@ -197,7 +224,7 @@ class QuotesRepository {
     }
   }
 
-  // Get quotes by me
+  // /********************************************************/ GET QUOTES WRITTEN BY ME API /********************************************************/
   Future<List<Quote>> getQuotesByMe(String userId) async {
     try {
       final response = await supabase
@@ -226,7 +253,7 @@ class QuotesRepository {
     }
   }
 
-  // delete a quote
+  // /********************************************************/ DELETE QUOTES API /********************************************************/
   Future<void> deleteQuote(Quote quote) async {
     try {
       await supabase.from('quotes').delete().eq('id', quote.id.toString());

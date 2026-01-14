@@ -20,10 +20,13 @@ class SignInPage extends ConsumerStatefulWidget {
 }
 
 class _SignInPageState extends ConsumerState<SignInPage> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   Future<void> onTapSignIn() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -48,17 +51,9 @@ class _SignInPageState extends ConsumerState<SignInPage> {
   }
 
   @override
-  void initState() {
-    // Test Account
-    // _emailController.text = "sahibulnuzulfirdaus13@gmail.com";
-    // _passwordController.text = "sahibul";
-
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider).authState;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Scaffold(
       backgroundColor: MyColors.secondary,
@@ -73,6 +68,8 @@ class _SignInPageState extends ConsumerState<SignInPage> {
         title: Text("Let's Continue", style: MyTypography.h3),
       ),
       body: SingleChildScrollView(
+        reverse: true,
+        padding: EdgeInsets.only(bottom: bottomInset),
         child: Container(
           margin: const EdgeInsets.only(top: 40),
           padding: const EdgeInsets.only(
@@ -88,160 +85,176 @@ class _SignInPageState extends ConsumerState<SignInPage> {
               topRight: Radius.circular(36),
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Hello!", style: MyTypography.h1),
-              const SizedBox(height: 10),
-              Text(
-                "Welcome back",
-                style: MyTypography.caption1.copyWith(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 20,
-                  color: Colors.grey,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Hello!", style: MyTypography.h1),
+                const SizedBox(height: 10),
+                Text(
+                  "Welcome back",
+                  style: MyTypography.caption1.copyWith(
+                    fontWeight: FontWeight.w400,
+                    fontSize: 20,
+                    color: Colors.grey,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 40),
-              // TextField
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Email",
-                    style: MyTypography.body1.copyWith(
-                      fontWeight: FontWeight.w600,
+                const SizedBox(height: 40),
+
+                // Email Field
+                Text(
+                  "Email",
+                  style: MyTypography.body1.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _emailController,
+                  style: MyTypography.body1,
+                  decoration: InputDecoration(
+                    hintText: "Enter your email",
+                    hintStyle: MyTypography.body1.copyWith(color: Colors.grey),
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      hintText: "Enter your email",
-                      hintStyle: MyTypography.body1.copyWith(
-                        color: Colors.grey,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty)
+                      return 'Email cannot be empty';
+                    if (!value.contains('@')) return 'Enter a valid email';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Password Field
+                Text(
+                  "Password",
+                  style: MyTypography.body1.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  style: MyTypography.body1,
+                  decoration: InputDecoration(
+                    hintText: "Enter your password",
+                    hintStyle: MyTypography.body1.copyWith(color: Colors.grey),
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    "Password",
-                    style: MyTypography.body1.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      hintText: "Enter your password",
-                      hintStyle: MyTypography.body1.copyWith(
-                        color: Colors.grey,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        'Forgot password?',
-                        style: MyTypography.body2.copyWith(
-                          color: MyColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 40),
-              PrimaryButton(
-                onPressed: authState == AuthState.loading
-                    ? null
-                    : () => onTapSignIn(),
-                child: authState == AuthState.loading
-                    ? const SizedBox(
-                        width: 30,
-                        height: 30,
-                        child: CircularProgressIndicator(color: Colors.white),
-                      )
-                    : Text(
-                        "Sign In",
-                        style: MyTypography.body1.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-              ),
-              const SizedBox(height: 30),
-              // Social Media Buttons
-              Column(
-                children: [
-                  Text(
-                    "Or continue with".toUpperCase(),
-                    style: MyTypography.caption1.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset("assets/img_google.png", width: 32),
-                      const SizedBox(width: 40),
-                      Image.asset("assets/img_facebook.png", width: 32),
-                      const SizedBox(width: 40),
-                      Image.asset("assets/img_apple.png", width: 32),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Don't have an account?",
-                    style: MyTypography.body2.copyWith(),
-                  ),
-                  TextButton(
-                    child: Text(
-                      "Sign Up",
+                  validator: (value) {
+                    if (value == null || value.isEmpty)
+                      return 'Password cannot be empty';
+                    if (value.length < 6)
+                      return 'Password must be at least 6 characters';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Forgot Password
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Forgot password?',
                       style: MyTypography.body2.copyWith(
                         color: MyColors.primary,
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const SignUpPage(),
+                  ],
+                ),
+                const SizedBox(height: 40),
+
+                // Sign In Button
+                PrimaryButton(
+                  onPressed: authState == AuthState.loading
+                      ? null
+                      : onTapSignIn,
+                  child: authState == AuthState.loading
+                      ? const SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: CircularProgressIndicator(color: Colors.white),
+                        )
+                      : Text(
+                          "Sign In",
+                          style: MyTypography.body1.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(height: 30),
+
+                // Social Buttons
+                Column(
+                  children: [
+                    Text(
+                      "Or continue with".toUpperCase(),
+                      style: MyTypography.caption1.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset("assets/img_google.png", width: 32),
+                        const SizedBox(width: 40),
+                        Image.asset("assets/img_facebook.png", width: 32),
+                        const SizedBox(width: 40),
+                        Image.asset("assets/img_apple.png", width: 32),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
+
+                // Sign Up
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Don't have an account?", style: MyTypography.body2),
+                    TextButton(
+                      child: Text(
+                        "Sign Up",
+                        style: MyTypography.body2.copyWith(
+                          color: MyColors.primary,
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => const SignUpPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

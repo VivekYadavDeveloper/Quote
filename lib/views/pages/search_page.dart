@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +10,7 @@ import 'package:staggered_grid_view_flutter/widgets/staggered_tile.dart';
 import '../../controllers/search_quotes_controller.dart';
 import '../../models/quote_model.dart';
 import '../../utils/random_colors.dart';
-import '../pages/quote_detail_page.dart';
+import '../templates/quote_detail_page_template.dart';
 import '../themes/colors.dart';
 import '../themes/typography.dart';
 import '../widgets/icon_solid_light.dart';
@@ -21,13 +23,23 @@ class SearchPage extends ConsumerStatefulWidget {
 }
 
 class _SearchPageState extends ConsumerState<SearchPage> {
-  final TextEditingController _searchController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _controller = TextEditingController();
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final searchQuotesState = ref.watch(searchQuotesProvider);
+    final searchState = ref.watch(searchQuotesProvider);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
@@ -37,24 +49,25 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           onTap: () => Navigator.pop(context),
         ),
         title: Text("Search Quote", style: MyTypography.h3),
+
+        // 🔽 SEARCH FORM
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(100),
-          child: Container(
-            height: 52,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 0.0,
-            ),
-            decoration: BoxDecoration(
-              color: MyColors.secondary,
-              borderRadius: BorderRadius.circular(25),
-            ),
-            margin: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
-            child: Center(
-              child: IntrinsicWidth(
-                child: TextField(
-                  controller: _searchController,
+          preferredSize: const Size.fromHeight(90),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+            child: Form(
+              key: _formKey,
+              child: Container(
+                height: 52,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: MyColors.secondary,
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: TextFormField(
+                  controller: _controller,
                   cursorColor: MyColors.black,
+                  textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
                     hintText: "Find a quote here",
                     hintStyle: MyTypography.body1.copyWith(
@@ -65,17 +78,48 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                       PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.regular),
                       color: MyColors.black,
                     ),
+                    suffixIcon: _controller.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () {
+                              _controller.clear();
+                              ref.read(searchQuotesProvider.notifier).clear();
+                              setState(() {});
+                            },
+                          )
+                        : null,
                   ),
+
+                  // 🔹 Optional validation
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "Type something";
+                    }
+                    if (value.trim().length < 3) {
+                      return "Minimum 3 characters";
+                    }
+                    return null;
+                  },
+
                   onChanged: (value) {
-                    // check if value is not empty and delay searching
-                    if (value.isNotEmpty &&
-                        value.length >= 3 &&
-                        !searchQuotesState.isLoading) {
-                      Future.delayed(const Duration(milliseconds: 700), () {
+                    setState(() {});
+                    _debounce?.cancel();
+                    _debounce = Timer(const Duration(milliseconds: 600), () {
+                      if (value.trim().length >= 3) {
                         ref
                             .read(searchQuotesProvider.notifier)
-                            .searchQuotes(_searchController.text);
-                      });
+                            .searchQuotes(value.trim());
+                      } else {
+                        ref.read(searchQuotesProvider.notifier).clear();
+                      }
+                    });
+                  },
+
+                  onFieldSubmitted: (_) {
+                    if (_formKey.currentState!.validate()) {
+                      ref
+                          .read(searchQuotesProvider.notifier)
+                          .searchQuotes(_controller.text.trim());
                     }
                   },
                 ),
@@ -84,95 +128,52 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ),
         ),
       ),
-      resizeToAvoidBottomInset: false,
-      body: searchQuotesState.when(
+
+      // 🔽 BODY
+      body: searchState.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(child: Text(error.toString())),
         data: (quotes) {
           if (quotes == null) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: MyColors.secondary,
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    padding: const EdgeInsets.all(40),
-                    child: Icon(
-                      PhosphorIcons.quotes(PhosphorIconsStyle.fill),
-                      size: 48,
-                    ),
-                  ),
-                  const SizedBox(height: 50),
-                  Text("It's empty here", style: MyTypography.h2),
-                  const SizedBox(height: 20),
-                  Text(
-                    "Try to find a quote by typing the keyword in the search bar above",
-                    style: MyTypography.body1.copyWith(
-                      fontWeight: FontWeight.w400,
-                      color: Colors.grey,
-                      height: 1.5,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+            return Center(
+              child: _EmptyState(
+                title: "Start typing to search quotes",
+                subtitle: "",
+                icon: PhosphorIcons.magnifyingGlassPlus(
+                  PhosphorIconsStyle.regular,
+                ),
               ),
             );
           }
 
           if (quotes.isEmpty) {
-            return Container(
-              width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: MyColors.secondary,
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    padding: const EdgeInsets.all(40),
-                    child: Icon(
-                      PhosphorIcons.quotes(PhosphorIconsStyle.fill),
-                      size: 48,
-                    ),
-                  ),
-                  const SizedBox(height: 50),
-                  Text("No quotes found", style: MyTypography.h2),
-                  const SizedBox(height: 20),
-                  Text(
-                    "Try searching for something else",
-                    style: MyTypography.body1.copyWith(
-                      fontWeight: FontWeight.w400,
-                      color: Colors.grey,
-                      height: 1.5,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+            return Center(
+              child: _EmptyState(
+                title: "No quotes found",
+                subtitle: "Write something different",
+                icon: PhosphorIcons.empty(PhosphorIconsStyle.regular),
               ),
             );
           }
 
+          // ✅ GRID
           return StaggeredGridView.countBuilder(
             crossAxisCount: 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
             itemCount: quotes.length,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-            staggeredTileBuilder: (index) {
-              return const StaggeredTile.fit(1);
-            },
+            staggeredTileBuilder: (_) => const StaggeredTile.fit(1),
             itemBuilder: (context, index) {
               final cardColor = getRandomColor();
+              final q = quotes[index];
 
               return InkWell(
+                borderRadius: BorderRadius.circular(20),
                 onTap: () {
                   final quote = Quote(
-                    author: quotes[index].author.toString(),
-                    content: quotes[index].content.toString(),
+                    author: q.author ?? '',
+                    content: q.content ?? '',
                     backgroundColor: cardColor.value,
                     textColor: Colors.white.value,
                     fontFamily: 'Inter',
@@ -183,17 +184,21 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     profession: '',
                   );
 
-                  Navigator.of(context).push(
+                  Navigator.push(
+                    context,
                     MaterialPageRoute(
-                      builder: (context) => QuoteDetailPage(quote: quote),
+                      builder: (_) => QuoteDetailPage(
+                        quote: quote,
+                        content: quote.content,
+                        author: q.author ?? '',
+                        authorAvatar: '',
+                        authorJob: '',
+                      ),
                     ),
                   );
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 20,
-                    horizontal: 20,
-                  ),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: cardColor,
                     borderRadius: BorderRadius.circular(20),
@@ -207,26 +212,24 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                       ),
                       const SizedBox(height: 10),
                       AutoSizeText(
-                        quotes[index].content.toString(),
+                        q.content ?? '',
                         maxFontSize: 20,
                         minFontSize: 14,
                         maxLines: 15,
                         overflow: TextOverflow.ellipsis,
                         style: MyTypography.body2.copyWith(
                           color: Colors.white,
-                          fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          letterSpacing: 0.2,
                         ),
                       ),
                       const SizedBox(height: 30),
                       Text(
-                        quotes[index].author.toString(),
-                        textAlign: TextAlign.center,
+                        q.author ?? '',
                         style: MyTypography.body2.copyWith(
                           color: Colors.white,
                           fontSize: 12,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
@@ -235,8 +238,46 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             },
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(child: Text(error.toString())),
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: MyColors.secondary,
+              borderRadius: BorderRadius.circular(100),
+            ),
+            padding: const EdgeInsets.all(40),
+            child: Icon(icon, size: 48),
+          ),
+          const SizedBox(height: 40),
+          Text(title, style: MyTypography.h2),
+          const SizedBox(height: 16),
+          Text(
+            subtitle,
+            style: MyTypography.body1.copyWith(color: Colors.grey, height: 1.5),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

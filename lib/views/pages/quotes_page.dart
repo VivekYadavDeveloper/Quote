@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:quote_vault/views/pages/search_page.dart';
 
 import '../../controllers/quotes_controller.dart';
 import '../../models/quote_model.dart';
