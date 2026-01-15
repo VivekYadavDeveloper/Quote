@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:quote_vault/views/pages/quote_detail_page.dart';
 import 'package:quote_vault/views/pages/search_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../controllers/quotes_controller.dart';
 import '../../models/quote_model.dart';
@@ -112,7 +113,7 @@ class _QuotesPageState extends ConsumerState<QuotesPage> {
                         fontFamily: 'Inter',
                         fontWeight: FontWeight.w500,
                         textAlign: TextAlign.left,
-                        userId: 'c8a706e3-893b-4d1c-9f08-cf2b22d5874f',
+                        userId: Supabase.instance.client.auth.currentUser!.id,
                       );
 
                       Navigator.push(

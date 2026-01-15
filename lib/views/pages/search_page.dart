@@ -7,6 +7,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:quote_vault/views/pages/quote_detail_page.dart';
 import 'package:staggered_grid_view_flutter/widgets/staggered_grid_view.dart';
 import 'package:staggered_grid_view_flutter/widgets/staggered_tile.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../controllers/search_quotes_controller.dart';
 import '../../models/quote_model.dart';
@@ -181,7 +182,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
                     textAlign: TextAlign.center,
-                    userId: 'c8a706e3-893b-4d1c-9f08-cf2b22d5874f',
+                    userId: Supabase.instance.client.auth.currentUser!.id,
                     profession: '',
                   );
 

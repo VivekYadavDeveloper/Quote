@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:quote_vault/controllers/user_controller.dart';
+
 import '../models/user_model.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/user_repository.dart';
@@ -46,7 +47,9 @@ class AuthController extends ChangeNotifier {
   String _errorMessage = '';
 
   AuthState get authState => _authState;
+
   AuthEvent get authEvent => _authEvent;
+
   String get errorMessage => _errorMessage;
 
   void setState(AuthState authState) {
