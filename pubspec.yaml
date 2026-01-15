@@ -42,7 +42,6 @@ dependencies:
   flutter_secure_storage: ^10.0.0
   http: ^1.6.0
   staggered_grid_view_flutter: ^0.0.4
-  appinio_social_share: ^0.3.2
   auto_size_text: ^3.0.0
   carousel_slider: ^5.1.1
   dot_navigation_bar: ^1.0.2
