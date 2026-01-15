@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:appinio_social_share/appinio_social_share.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,11 +14,8 @@ import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 import '../../controllers/favorite_controller.dart';
 import '../../models/quote_model.dart';
-import '../themes/colors.dart';
 import '../themes/typography.dart';
 import '../widgets/icon_solid_light.dart';
-import '../widgets/quot_widget_preview.dart';
-import '../widgets/quot_widget_share.dart';
 
 enum SocialShare {
   telegram,
@@ -38,6 +34,7 @@ enum SocialShare {
 
 class QuoteDetailPage extends ConsumerStatefulWidget {
   const QuoteDetailPage({super.key, required this.quote});
+
   final Quote quote;
 
   @override

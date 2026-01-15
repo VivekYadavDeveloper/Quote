@@ -6,8 +6,8 @@ import 'package:quote_vault/models/quote_model.dart';
 import '../themes/typography.dart';
 import '../widgets/icon_solid_light.dart';
 
-class QuoteDetailPage extends StatelessWidget {
-  const QuoteDetailPage({
+class QuoteDetailPageTemplate extends StatelessWidget {
+  const QuoteDetailPageTemplate({
     super.key,
     required this.content,
     required this.author,

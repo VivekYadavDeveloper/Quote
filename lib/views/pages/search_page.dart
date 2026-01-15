@@ -4,13 +4,13 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:quote_vault/views/pages/quote_detail_page.dart';
 import 'package:staggered_grid_view_flutter/widgets/staggered_grid_view.dart';
 import 'package:staggered_grid_view_flutter/widgets/staggered_tile.dart';
 
 import '../../controllers/search_quotes_controller.dart';
 import '../../models/quote_model.dart';
 import '../../utils/random_colors.dart';
-import '../templates/quote_detail_page_template.dart';
 import '../themes/colors.dart';
 import '../themes/typography.dart';
 import '../widgets/icon_solid_light.dart';
@@ -172,6 +172,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                 borderRadius: BorderRadius.circular(20),
                 onTap: () {
                   final quote = Quote(
+                    id: q.id,
                     author: q.author ?? '',
                     content: q.content ?? '',
                     backgroundColor: cardColor.value,
@@ -180,20 +181,14 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
                     textAlign: TextAlign.center,
-                    userId: '',
+                    userId: 'c8a706e3-893b-4d1c-9f08-cf2b22d5874f',
                     profession: '',
                   );
 
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => QuoteDetailPage(
-                        quote: quote,
-                        content: quote.content,
-                        author: q.author ?? '',
-                        authorAvatar: '',
-                        authorJob: '',
-                      ),
+                      builder: (_) => QuoteDetailPage(quote: quote),
                     ),
                   );
                 },

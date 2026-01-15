@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:quote_vault/views/pages/quote_detail_page.dart';
 import 'package:quote_vault/views/pages/search_page.dart';
 
 import '../../controllers/quotes_controller.dart';
 import '../../models/quote_model.dart';
 import '../../utils/random_colors.dart';
-import '../templates/quote_detail_page_template.dart';
-import '../templates/search_page_template.dart';
 import '../themes/typography.dart';
 import '../widgets/icon_solid_light.dart';
 import '../widgets/quotes_card.dart';
@@ -105,6 +104,7 @@ class _QuotesPageState extends ConsumerState<QuotesPage> {
                     borderRadius: BorderRadius.circular(16),
                     onTap: () {
                       final quote = Quote(
+                        id: quoteData.id ?? "",
                         author: quoteData.author ?? '',
                         content: quoteData.content ?? '',
                         backgroundColor: cardColor.value,
@@ -118,13 +118,7 @@ class _QuotesPageState extends ConsumerState<QuotesPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => QuoteDetailPage(
-                            quote: quote,
-                            content: quote.content,
-                            author: quote.author,
-                            authorAvatar: '',
-                            authorJob: '',
-                          ),
+                          builder: (_) => QuoteDetailPage(quote: quote),
                         ),
                       );
                     },
