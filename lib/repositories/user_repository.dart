@@ -9,7 +9,6 @@ class UserRepository {
 
   Future<void> createUser(User user) async {
     final data = user.toJson();
-
     try {
       await supabase.from('user_details').insert(data);
     } catch (e) {
@@ -25,13 +24,21 @@ class UserRepository {
           .from('user_details')
           .select()
           .eq('user_id', userId)
-          .single();
+          .maybeSingle(); // 👈 SAFE
 
-      final user = User.fromJson(response);
+      // 🔹 If profile does not exist → create it
+      if (response == null) {
+        final authUser = supabase.auth.currentUser!;
 
-      return user;
+        final newUser = User(id: authUser.id, email: authUser.email!);
+
+        await createUser(newUser);
+        return newUser;
+      }
+
+      return User.fromJson(response);
     } catch (e) {
-      debugPrint(e.toString());
+      debugPrint('❌ Fetch user error: $e');
       rethrow;
     }
   }

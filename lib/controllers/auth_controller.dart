@@ -136,14 +136,15 @@ class AuthController extends ChangeNotifier {
       final session = await storage.getSession();
 
       if (session == null) {
-        signOut();
+        setAuthEvent(AuthEvent.loggedOut);
         return;
       }
 
       debugPrint("UserID: ${session.user.id}");
-      User authUser = await userRepository.fetchUser(session.user.id);
 
-      userController.setUser(authUser);
+      final user = await userRepository.fetchUser(session.user.id);
+
+      userController.setUser(user);
 
       setAuthEvent(AuthEvent.loggedIn);
 
@@ -151,14 +152,11 @@ class AuthController extends ChangeNotifier {
       ref.invalidate(quotesControllerProvider);
       ref.invalidate(myQuotesProvider);
       ref.invalidate(favoriteProvider);
-
-      debugPrint(_authEvent.toString());
     } catch (e) {
-      final err = ErrorHandling.getErrorMessage(e);
-      setErrorMessage(err);
-      setState(AuthState.error);
+      debugPrint('❌ checkAuth error: $e');
 
-      signOut();
+      // ❌ DO NOT signOut here
+      setAuthEvent(AuthEvent.loggedOut);
     }
   }
 }

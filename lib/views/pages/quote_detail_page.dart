@@ -9,7 +9,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 import '../../controllers/favorite_controller.dart';
 import '../../models/quote_model.dart';
@@ -92,23 +91,26 @@ class _QuoteDetailPageState extends ConsumerState<QuoteDetailPage> {
             child: Padding(
               padding: const EdgeInsets.all(30),
               child: Column(
+                mainAxisAlignment: .center,
                 children: [
                   Icon(
                     PhosphorIcons.quotes(PhosphorIconsStyle.fill),
-                    size: 70,
+                    size: 55,
                     color: Color(quote.textColor),
                   ),
                   const SizedBox(height: 20),
-                  Expanded(
-                    child: AutoSizeText(
-                      quote.content,
-                      maxFontSize: 28,
-                      minFontSize: 18,
-                      textAlign: quote.textAlign,
-                      style: GoogleFonts.getFont(
-                        quote.fontFamily,
-                        color: Color(quote.textColor),
-                        fontWeight: FontWeight.w600,
+                  Center(
+                    child: Expanded(
+                      child: AutoSizeText(
+                        quote.content,
+                        maxFontSize: 28,
+                        minFontSize: 18,
+                        textAlign: quote.textAlign,
+                        style: GoogleFonts.getFont(
+                          quote.fontFamily,
+                          color: Color(quote.textColor),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
@@ -137,11 +139,7 @@ class _QuoteDetailPageState extends ConsumerState<QuoteDetailPage> {
                       const SizedBox(width: 20),
                       ElevatedButton.icon(
                         onPressed: () {
-                          WoltModalSheet.show(
-                            context: context,
-                            pageIndexNotifier: pageIndexNotifier,
-                            pageListBuilder: (ctx) => [shareSheet(ctx)],
-                          );
+                          shareQuoteCard();
                         },
                         icon: const Icon(Icons.share),
                         label: const Text('Share'),
@@ -153,20 +151,6 @@ class _QuoteDetailPageState extends ConsumerState<QuoteDetailPage> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  /// 🔹 SIMPLE SHARE SHEET (no app-specific logic)
-  WoltModalSheetPage shareSheet(BuildContext context) {
-    return WoltModalSheetPage(
-      child: ListTile(
-        leading: const Icon(Icons.share),
-        title: const Text('Share Quote'),
-        onTap: () {
-          Navigator.pop(context);
-          shareQuoteCard();
-        },
       ),
     );
   }
