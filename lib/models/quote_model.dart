@@ -45,6 +45,10 @@ class Quote {
   }
 
   factory Quote.fromJson(Map<String, dynamic> json) {
+    print(
+      'FONT_WEIGHT RAW: ${json['font_weight']} (${json['font_weight'].runtimeType})',
+    );
+
     final id = json['id']?.toString();
     final userId = json['user_id']?.toString() ?? '';
     final content = json['content']?.toString() ?? '';

@@ -1,60 +1,61 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:quote_vault/controllers/user_controller.dart';
 
 import '../models/quote_model.dart';
 import '../repositories/favorite_repository.dart';
+import 'user_controller.dart';
 
 final favoriteProvider =
-    StateNotifierProvider<FavoriteController, AsyncValue<List<Quote>?>>((ref) {
-      final repo = ref.watch(favoriteRepositoryProvider);
-      final userController = ref.watch(userProvider.notifier);
-
-      return FavoriteController(repo, userController)..getFavoriteQuotes();
+    StateNotifierProvider<FavoriteController, AsyncValue<List<Quote>>>((ref) {
+      final repo = FavoriteRepository();
+      final user = ref.watch(userProvider)!; // logged-in user
+      return FavoriteController(repo, user.id)..loadFavorites();
     });
 
-class FavoriteController extends StateNotifier<AsyncValue<List<Quote>?>> {
-  FavoriteController(this.favoriteRepository, this.userController)
-    : super(const AsyncValue.data(null));
+class FavoriteController extends StateNotifier<AsyncValue<List<Quote>>> {
+  final FavoriteRepository repo;
+  final String userId;
 
-  final FavoriteRepository favoriteRepository;
-  final UserController userController;
+  FavoriteController(this.repo, this.userId)
+    : super(const AsyncValue.loading());
 
-  bool isFavorite(Quote quote) {
-    return state.value?.any((element) => element.id == quote.id) ?? false;
-  }
-
-  Future<void> getFavoriteQuotes() async {
-    state = const AsyncValue.loading();
-
-    final userId = userController.state!.id;
-
-    final result = await favoriteRepository.getFavoriteQuotes(userId);
-
-    if (mounted) {
-      state = AsyncValue.data(result);
+  // ================= LOAD =================
+  Future<void> loadFavorites() async {
+    try {
+      final data = await repo.getFavoriteQuotes(userId);
+      state = AsyncValue.data(data);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
     }
   }
 
-  Future<void> toggleFavorite(Quote quote, bool isFavorite) async {
-    state = const AsyncValue.loading();
+  // ================= CHECK =================
+  bool isFavorite(String content) {
+    final list = state.value;
+    if (list == null) return false;
+    return list.any((q) => q.content == content);
+  }
 
-    if (isFavorite) {
-      await favoriteRepository.deleteFavoriteQuote(quote);
+  // ================= TOGGLE =================
+  Future<void> toggleFavorite(Quote quote) async {
+    final fav = isFavorite(quote.content);
+
+    if (fav) {
+      await repo.deleteFavoriteQuote(quote);
     } else {
-      await favoriteRepository.addFavoriteQuote(quote);
+      await repo.addFavoriteQuote(quote);
     }
 
-    state = const AsyncValue.data(null);
+    await loadFavorites();
   }
 
-  // delete all favorite quotes
-  Future<void> deleteAllFavoriteQuotes() async {
-    state = const AsyncValue.loading();
-
-    final userId = userController.state!.id;
-    await favoriteRepository.deleteAllFavoriteQuotes(userId);
-
-    state = const AsyncValue.data(null);
+  // ================= DELETE ALL ✅ =================
+  Future<void> deleteAll() async {
+    try {
+      await repo.deleteAllFavoriteQuotes(userId);
+      state = const AsyncValue.data([]);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
   }
 }

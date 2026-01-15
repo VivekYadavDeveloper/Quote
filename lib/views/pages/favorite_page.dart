@@ -44,9 +44,7 @@ class FavoritePage extends ConsumerWidget {
               : IconSolidLight(
                   icon: PhosphorIcons.trashSimple(PhosphorIconsStyle.regular),
                   onTap: () {
-                    ref
-                        .read(favoriteProvider.notifier)
-                        .deleteAllFavoriteQuotes();
+                    ref.read(favoriteProvider.notifier).deleteAll();
                   },
                 ),
           const SizedBox(width: 20),
@@ -118,7 +116,7 @@ class FavoritePage extends ConsumerWidget {
                             quote.fontFamily,
                             color: Color(quote.textColor),
                             fontSize: quote.fontSize,
-                            fontWeight: quote.fontWeight,
+                            fontWeight: quote.fontWeight as FontWeight,
                           ),
                         ),
                         const SizedBox(height: 30),

@@ -13,37 +13,20 @@ class FavoriteRepository {
 
   Future<List<Quote>> getFavoriteQuotes(String userId) async {
     try {
-      // ✅ FIXED: Remove the join, just select from favorites directly
-      final response = await supabase
+      final res = await supabase
           .from('favorites')
           .select()
           .eq('user_id', userId)
           .order('created_at', ascending: false);
+      ;
 
-      debugPrint('✅ Favorite quotes: $response');
+      print('✅ Favorite quotes: $res');
 
-      List<Quote> quotes = [];
-
-      for (var favorite in response) {
-        // Create Quote from favorite data
-        quotes.add(
-          Quote(
-            id: favorite['quote_id'],
-            author: favorite['author'] ?? '',
-            content: favorite['content'] ?? '',
-            backgroundColor: favorite['background_color'],
-            textColor: favorite['text_color'],
-            fontFamily: favorite['font_family'] ?? 'Inter',
-            fontWeight: favorite['font_weight'] ?? 'w500',
-            textAlign: favorite['text_align'] ?? 'left',
-            userId: userId,
-          ),
-        );
-      }
-
-      return quotes;
+      return res.map<Quote>((json) {
+        return Quote.fromJson(json); // ✅ IMPORTANT
+      }).toList();
     } catch (e) {
-      debugPrint('❌ Error getting favorites: $e');
+      print('❌ Error getting favorites: $e');
       rethrow;
     }
   }
@@ -58,8 +41,8 @@ class FavoriteRepository {
       'background_color': quote.backgroundColor,
       'text_color': quote.textColor,
       'font_family': quote.fontFamily,
-      'font_weight': quote.fontWeight,
-      'text_align': quote.textAlign,
+      'font_weight': quote.fontWeight.value,
+      'text_align': quote.textAlign.index,
     };
 
     try {
@@ -87,13 +70,7 @@ class FavoriteRepository {
 
   // delete all favorite quotes
   Future<void> deleteAllFavoriteQuotes(String userId) async {
-    try {
-      await supabase.from('favorites').delete().eq('user_id', userId);
-      debugPrint('✅ Deleted all favorites');
-    } catch (e) {
-      debugPrint('❌ Error deleting all favorites: $e');
-      rethrow;
-    }
+    await supabase.from('favorites').delete().eq('user_id', userId);
   }
 
   // Check if a quote is favorited
