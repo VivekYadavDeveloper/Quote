@@ -72,10 +72,10 @@ class AuthController extends ChangeNotifier {
 
     try {
       final res = await authRepository.signUp(email, password);
-
-      User newUser = User(id: res.user!.id, email: res.user!.email!);
-
-      await userRepository.createUser(newUser);
+      //
+      // UserModel newUser = UserModel(id: res.user!.id, email: res.user!.email!);
+      //
+      // await userRepository.createUser(newUser);
 
       setState(AuthState.loaded);
     } catch (e) {
@@ -94,7 +94,7 @@ class AuthController extends ChangeNotifier {
       final storage = LocalStorage();
       await storage.setSession(res.session!);
 
-      User authUser = User(id: res.user!.id, email: res.user!.email!);
+      UserModel authUser = UserModel(id: res.user!.id, email: res.user!.email!);
 
       userController.setUser(authUser);
 

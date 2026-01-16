@@ -7,18 +7,19 @@ import '../models/user_model.dart';
 class UserRepository {
   final supabase = sp.Supabase.instance.client;
 
-  Future<void> createUser(User user) async {
+  Future<void> createUser(UserModel user) async {
     final data = user.toJson();
     try {
       await supabase.from('user_details').insert(data);
     } catch (e) {
+      debugPrint('❌ Create user error: $e');
       debugPrint(e.toString());
       rethrow;
     }
   }
 
   // fetch user
-  Future<User> fetchUser(String userId) async {
+  Future<UserModel> fetchUser(String userId) async {
     try {
       final response = await supabase
           .from('user_details')
@@ -30,13 +31,13 @@ class UserRepository {
       if (response == null) {
         final authUser = supabase.auth.currentUser!;
 
-        final newUser = User(id: authUser.id, email: authUser.email!);
+        final newUser = UserModel(id: authUser.id, email: authUser.email!);
 
         await createUser(newUser);
         return newUser;
       }
 
-      return User.fromJson(response);
+      return UserModel.fromJson(response);
     } catch (e) {
       debugPrint('❌ Fetch user error: $e');
       rethrow;

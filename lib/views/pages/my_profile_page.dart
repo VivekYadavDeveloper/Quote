@@ -35,6 +35,20 @@ class _MyProfileState extends ConsumerState<MyProfile> {
     });
   }
 
+  // void onTapDeleteUser() async {
+  //   await ref.read(authProvider).userController.deleteAccount().then((_) {
+  //     final deleteAuth = ref.watch(authProvider);
+  //     if (deleteAuth.authState == AuthState.error) {
+  //       showSnackbar(context, deleteAuth.errorMessage);
+  //
+  //       return;
+  //     }
+  //     Navigator.of(context).pushReplacement(
+  //       MaterialPageRoute(builder: (context) => const AuthCheck()),
+  //     );
+  //   });
+  // }
+
   @override
   Widget build(BuildContext context) {
     final userState = ref.watch(userProvider);
@@ -128,7 +142,9 @@ class _MyProfileState extends ConsumerState<MyProfile> {
               children: [
                 Flexible(
                   child: InkWell(
-                    onTap: () {},
+                    onTap: () {
+                      /*TODO: Work On Delete User*/
+                    },
                     borderRadius: BorderRadius.circular(15),
                     child: Container(
                       height: 44,
